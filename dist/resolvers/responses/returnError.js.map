@@ -1,0 +1,1 @@
+{"version":3,"file":"returnError.js","sourceRoot":"","sources":["../../../src/resolvers/responses/returnError.ts"],"names":[],"mappings":";;;AAGa,QAAA,mBAAmB,GAAG,CAAE,KAAa,EAAE,OAAe,EAAiB,EAAE;IAClF,OAAO;QACH,MAAM,EAAC,CAAC;gBACJ,KAAK;gBACL,OAAO;aACV,CAAC;KACL,CAAA;AACL,CAAC,CAAA"}
