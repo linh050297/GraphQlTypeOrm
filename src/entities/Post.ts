@@ -46,7 +46,7 @@ export class Post extends BaseEntity {
   voteStatus: number;
 
   @Column("tsvector", {select: false, nullable: true}) //select = false khi query sẽ ko query trường này
-  document_idx: any; // TÌM KIẾM THEO CÓ ĐẦY ĐỦ DẤU
+  document_idx: any; // TÌM KIẾM THEO CÓ ĐẦY ĐỦ DẤU và không dấu
 
   // @Column("tsvector", {select: false, nullable: true}) //select = false khi query sẽ ko query trường này
   // tsvector_unaccent_idx: any; //BỎ HẾT DẤU NHẰM TÌM KIẾM THEO KHÔNG DẤU

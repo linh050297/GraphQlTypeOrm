@@ -9,19 +9,20 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.LastMigraForSearch1608114315750 = void 0;
-class LastMigraForSearch1608114315750 {
+exports.DocumentSetweight1608261919975 = void 0;
+class DocumentSetweight1608261919975 {
     up(queryRunner) {
         return __awaiter(this, void 0, void 0, function* () {
             yield queryRunner.query(`
+            CREATE EXTENSION unaccent;
             -- alter table post add column document_idx tsvector;
-            update post set document_idx = to_tsvector( coalesce(title, '') || ' ' ||unaccent(coalesce(title, '')));
+            update post set document_idx = setweight(to_tsvector( coalesce(title, '')),'A') || setweight(to_tsvector(unaccent(coalesce(title, ''))),'B');
             create index document_idx on post using gin (document_idx);
 
             --trigger *********
             CREATE OR REPLACE FUNCTION post_tsvector_unaccent_trigger() returns trigger as $$
              begin
-                new.document_idx := to_tsvector( coalesce(new.title, '') || ' ' ||unaccent(coalesce(new.title, '')));
+                new.document_idx := setweight(to_tsvector( coalesce(new.title, '')),'A') || setweight(to_tsvector(unaccent(coalesce(new.title, ''))),'B');
              	return new;
              end
             $$ LANGUAGE plpgsql;
@@ -36,5 +37,5 @@ class LastMigraForSearch1608114315750 {
         });
     }
 }
-exports.LastMigraForSearch1608114315750 = LastMigraForSearch1608114315750;
-//# sourceMappingURL=1608114315750-LastMigraForSearch.js.map
+exports.DocumentSetweight1608261919975 = DocumentSetweight1608261919975;
+//# sourceMappingURL=1608261919975-DocumentSetweight.js.map

@@ -176,7 +176,8 @@ let PostResolvers = class PostResolvers {
     }
     searchPostByTitle(searchString) {
         return __awaiter(this, void 0, void 0, function* () {
-            const stringArr = searchString.split(" ");
+            const stringArrStandardized = searchString.replace(/^\s+|\s+$|\s+(?=\s)/g, "");
+            const stringArr = stringArrStandardized.split(" ");
             let stringTsQuery = '';
             let whereQuery = '';
             if (stringArr.length > 1) {
@@ -184,23 +185,22 @@ let PostResolvers = class PostResolvers {
                     console.log('str: ', str);
                     stringTsQuery += `${str}:* & `;
                 });
-                stringTsQuery = stringTsQuery.slice(0, -2);
+                stringTsQuery = stringTsQuery.slice(0, -3);
             }
             else {
-                stringTsQuery = `${searchString}:*`;
+                stringTsQuery = `${stringArrStandardized}:*`;
             }
             ;
-            whereQuery = `  document_idx @@ to_tsquery('${stringTsQuery}') or
-                        document_idx @@ to_tsquery(unaccent('${stringTsQuery}'))
-                        order by ts_rank(document_idx, plainto_tsquery('${searchString}')) desc`;
+            whereQuery = `document_idx @@ to_tsquery('${stringTsQuery}')`;
             console.log('whereQuery: ', whereQuery);
             const posts = yield typeorm_1.getConnection()
                 .getRepository(entities_1.Post)
                 .createQueryBuilder("post")
                 .innerJoinAndSelect("post.creator", "u", 'u.id = post.creatorId')
                 .where(whereQuery)
+                .orderBy(`ts_rank(document_idx, plainto_tsquery('${stringArrStandardized}'))`, 'DESC')
+                .addOrderBy(`post.createdAt`, 'DESC')
                 .getMany();
-            console.log('posts: ', posts);
             return posts;
         });
     }

@@ -1,6 +1,6 @@
 
 import { PostInput } from './../utils/type-graphql';
-import { Resolver, Query, Arg, Mutation, Ctx, UseMiddleware, Int, FieldResolver, Root, ObjectType, Field, Info } from "type-graphql";
+import { Resolver, Query, Arg, Mutation, Ctx, UseMiddleware, Int, FieldResolver, Root, ObjectType, Field } from "type-graphql";
 import { Post, Updoot } from "../entities";
 import { MyContext } from "src/types";
 import { returnErrorResponse } from "./responses";
@@ -213,7 +213,10 @@ export class PostResolvers {
     ): Promise<Post[]> {
 
         //slit string ra thành mảng nếu tring chứa nhiều ký tự space
-        const stringArr = searchString.split(" ");
+        //string đã loại bỏ mọi khoảng trắng đầu cuối và giữa
+        const stringArrStandardized = searchString.replace(/^\s+|\s+$|\s+(?=\s)/g, ""); 
+        const stringArr = stringArrStandardized.split(" ");
+
         let stringTsQuery = '';
         let whereQuery = '';
 
@@ -221,18 +224,15 @@ export class PostResolvers {
             stringArr.forEach(str => {
                 console.log('str: ', str);
                 stringTsQuery += `${str}:* & `;
-
             });
 
-            stringTsQuery = stringTsQuery.slice(0, -2);
+            stringTsQuery = stringTsQuery.slice(0, -3);
 
         }else{
-            stringTsQuery = `${searchString}:*`;
+            stringTsQuery = `${stringArrStandardized}:*`;
         };
 
-        whereQuery = `  document_idx @@ to_tsquery('${stringTsQuery}') or
-                        document_idx @@ to_tsquery(unaccent('${stringTsQuery}'))
-                        order by ts_rank(document_idx, plainto_tsquery('${searchString}')) desc`;
+        whereQuery = `document_idx @@ to_tsquery('${stringTsQuery}')`;
 
         console.log('whereQuery: ', whereQuery);
 
@@ -242,9 +242,10 @@ export class PostResolvers {
             // .select()
             .innerJoinAndSelect("post.creator", "u", 'u.id = post.creatorId')
             .where(whereQuery)
+            .orderBy(`ts_rank(document_idx, plainto_tsquery('${stringArrStandardized}'))`, 'DESC')
+            .addOrderBy(`post.createdAt`, 'DESC')
             .getMany();
 
-        console.log('posts: ', posts);
         return posts;
         
     }

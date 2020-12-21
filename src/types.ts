@@ -4,7 +4,7 @@ import { Redis } from 'ioredis';
 export type MyContext = {
     redis: Redis;
     req: Request & { session: Express.Session } ;
-    res: Response;
+    res: Response
 }
 
 export type errorsReturn = {
