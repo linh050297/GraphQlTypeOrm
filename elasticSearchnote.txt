@@ -1,0 +1,133 @@
+//******** thiết lập index thông thường
+PUT standard_sample
+{
+  "settings": {
+    "index": {
+        "number_of_shards" : 1,
+        "number_of_replicas" : 1,
+      "analysis": {
+        "analyzer": {
+          "my_analyzer": {
+            "char_filter":  [ "html_strip" ],
+            "tokenizer": "vi_tokenizer"
+          }
+        }
+      }
+    }
+  },
+  "mappings": {
+    "_doc": {
+      "properties": {
+        "name": {
+          "type": "text",
+          "analyzer": "my_analyzer"
+        },
+        "user_name": {
+          "type": "keyword",
+          "analyzer": "my_analyzer"
+        },
+        "email": {
+          "type": "keyword",
+          "analyzer": "my_analyzer"
+        }
+      }
+    }
+  }
+}
+
+GET /standard_sample
+
+GET standard_sample/_analyze
+{
+  "analyzer": "my_analyzer",
+  "text": "đại học Mỹ"
+} 
+
+DELETE /standard_sample
+
+PUT /manzanaindex
+{
+    "mappings":{
+        "properties":{
+                "city":{
+                    "type": "text"
+                }
+        }
+    }
+}
+
+POST _analyze
+{
+  "tokenizer":      "keyword", 
+  "char_filter":  [ "html_strip" ],
+  "text": "<p>I&apos;m so <b>happy</b>!</p>"
+}
+
+POST /standard_sample/movie/_doc
+{
+  "title": "Tan Phan",
+  "text":"Tân đang học mỹ thuật "
+  
+}
+
+
+//********* edge_ngram_autocomplete dành cho những đoạn text ngắn
+
+PUT edge_ngram_autocomplete
+{
+  "settings": {
+    "analysis": {
+      "filter": {
+        "autocomplete_filter": {
+          "type": "edge_ngram",
+          "min_gram": 1,
+          "max_gram": 8
+        }
+      },
+      "analyzer": {
+        "autocomplete": { 
+          "type": "custom",
+          "tokenizer": "standard",
+          "filter": [
+            "lowercase",
+            "autocomplete_filter"
+          ]
+        }
+      }
+    }
+  },
+  "mappings": {
+    "properties": {
+      "text": {
+        "type": "text",
+        "analyzer": "autocomplete", 
+        "search_analyzer": "autocomplete" 
+      }
+    }
+  }
+}
+
+GET edge_ngram_autocomplete/_search
+{
+  "query": {
+    "match": {
+      "text": {
+        "query": "than", 
+        "operator": "and"
+      }
+    }
+  }
+}
+
+GET edge_ngram_autocomplete/_analyze
+{
+  "analyzer": "autocomplete",
+  "text": "nguyễn thanh thảo"
+}
+
+DELETE /edge_ngram_autocomplete
+
+PUT edge_ngram_autocomplete/_doc/1
+{
+  "text": "nguyễn thanh thảo" 
+}

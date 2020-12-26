@@ -11,19 +11,21 @@
     "dev2": "nodemon --exec ts-node src/index.ts",
     "watch": "tsc -w",
     "typeorm": "node --require ts-node/register ./node_modules/typeorm/cli.js",
-    "run_migration": "typeorm migration:run" 
+    "run_migration": "typeorm migration:run"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
     "@types/connect-redis": "^0.0.14",
+    "@types/elasticsearch": "^5.0.37",
     "@types/express-session": "^1.17.0",
     "@types/redis": "^2.8.28",
     "apollo-server-express": "^2.19.0",
     "argon2": "^0.27.0",
     "connect-redis": "^5.0.0",
     "cors": "^2.8.5",
+    "elasticsearch": "^16.7.2",
     "express": "^4.17.1",
     "express-session": "^1.17.1",
     "graphql": "^15.4.0",

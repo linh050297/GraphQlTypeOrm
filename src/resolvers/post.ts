@@ -7,6 +7,7 @@ import { returnErrorResponse } from "./responses";
 import { PostResponse } from "../utils/type-graphql";
 import { isAuth } from '../middleware/isAuth';
 import { getConnection } from 'typeorm';
+import { createIndexSearchTitlePost } from '../elasticSearchService/indexService';
 
 @ObjectType()
 class PaginatedPosts {
@@ -168,17 +169,20 @@ export class PostResolvers {
     }
 
     @Mutation(() => Post, { nullable: true })
+    @UseMiddleware(isAuth)
     async updatePost(
         @Arg('title', () => String, { nullable: true }) title: string,
-        @Arg('id') id: number,
+        @Arg('text', () => String, { nullable: true }) text: string,
+        @Arg('id', ()=> Int!) id: number,
     ): Promise<Post | null> {
+
         const post = await Post.findOne(id);
         if (!post) {
             return null;
         };
 
         if (post && typeof title !== 'undefined') {
-            await Post.update({ id }, { title });
+            await Post.update({ id }, { title, text });
         }
         return post
     }
@@ -207,6 +211,22 @@ export class PostResolvers {
         }
     }
 
+    @Query(()=> Boolean)
+    async createIndexPostTitle(
+        @Arg('nameIndex', () => String) nameIndex: string
+    ):Promise<Boolean>{
+        try {
+
+            let resultCreate = await createIndexSearchTitlePost(nameIndex);
+            console.log('resultCreate: ', resultCreate);
+            return true;
+
+        } catch (error) {
+            console.log('error: ', error);
+            return false;
+        }
+    }
+
     @Query(() => [Post], { nullable: true })
     async searchPostByTitle(
         @Arg('searchString', () => String) searchString: string
@@ -223,7 +243,7 @@ export class PostResolvers {
         if(stringArr.length > 1){
             stringArr.forEach(str => {
                 console.log('str: ', str);
-                stringTsQuery += `${str}:* & `;
+                stringTsQuery += `${str}:* | `;
             });
 
             stringTsQuery = stringTsQuery.slice(0, -3);
@@ -232,7 +252,15 @@ export class PostResolvers {
             stringTsQuery = `${stringArrStandardized}:*`;
         };
 
-        whereQuery = `document_idx @@ to_tsquery('${stringTsQuery}')`;
+        var unaccent = searchString.normalize('NFD').replace(/[\u0300-\u036f]/g, "");
+        console.log(unaccent)
+
+        if(unaccent !== searchString){
+            console.log('có dấu')
+            whereQuery = `document_idx @@ to_tsquery('${stringTsQuery}')`;
+        }else{
+            whereQuery = `document_idx @@ to_tsquery('${stringTsQuery}') or document_idx @@ to_tsquery(unaccent(coalesce('${stringTsQuery}', '')))`;
+        }
 
         console.log('whereQuery: ', whereQuery);
 

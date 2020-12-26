@@ -33,6 +33,7 @@ export class UserResolvers {
         @Ctx() { req }: MyContext
     ): Promise<User | null>{
         //not log in
+        console.log('req.session:', req.session);
         if(!req.session.userId){
             return null
         }

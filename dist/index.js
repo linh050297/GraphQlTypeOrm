@@ -25,6 +25,17 @@ const cors_1 = __importDefault(require("cors"));
 const entities_1 = require("./entities");
 const typeorm_1 = require("typeorm");
 const path_1 = __importDefault(require("path"));
+const elasticSearchConnect_1 = __importDefault(require("./utils/elasticSearchConnect"));
+elasticSearchConnect_1.default.ping({
+    requestTimeout: 3000
+}, function (error) {
+    if (error) {
+        console.trace('elasticsearch cluster is down!');
+    }
+    else {
+        console.log('All is well');
+    }
+});
 const main = () => __awaiter(void 0, void 0, void 0, function* () {
     const conn = yield typeorm_1.createConnection({
         type: "postgres",

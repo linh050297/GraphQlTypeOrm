@@ -29,6 +29,7 @@ const responses_1 = require("./responses");
 const type_graphql_3 = require("../utils/type-graphql");
 const isAuth_1 = require("../middleware/isAuth");
 const typeorm_1 = require("typeorm");
+const indexService_1 = require("../elasticSearchService/indexService");
 let PaginatedPosts = class PaginatedPosts {
 };
 __decorate([
@@ -143,7 +144,7 @@ let PostResolvers = class PostResolvers {
             return { post };
         });
     }
-    updatePost(title, id) {
+    updatePost(title, text, id) {
         return __awaiter(this, void 0, void 0, function* () {
             const post = yield entities_1.Post.findOne(id);
             if (!post) {
@@ -151,7 +152,7 @@ let PostResolvers = class PostResolvers {
             }
             ;
             if (post && typeof title !== 'undefined') {
-                yield entities_1.Post.update({ id }, { title });
+                yield entities_1.Post.update({ id }, { title, text });
             }
             return post;
         });
@@ -174,6 +175,19 @@ let PostResolvers = class PostResolvers {
             }
         });
     }
+    createIndexPostTitle(nameIndex) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                let resultCreate = yield indexService_1.createIndexSearchTitlePost(nameIndex);
+                console.log('resultCreate: ', resultCreate);
+                return true;
+            }
+            catch (error) {
+                console.log('error: ', error);
+                return false;
+            }
+        });
+    }
     searchPostByTitle(searchString) {
         return __awaiter(this, void 0, void 0, function* () {
             const stringArrStandardized = searchString.replace(/^\s+|\s+$|\s+(?=\s)/g, "");
@@ -183,7 +197,7 @@ let PostResolvers = class PostResolvers {
             if (stringArr.length > 1) {
                 stringArr.forEach(str => {
                     console.log('str: ', str);
-                    stringTsQuery += `${str}:* & `;
+                    stringTsQuery += `${str}:* | `;
                 });
                 stringTsQuery = stringTsQuery.slice(0, -3);
             }
@@ -191,7 +205,15 @@ let PostResolvers = class PostResolvers {
                 stringTsQuery = `${stringArrStandardized}:*`;
             }
             ;
-            whereQuery = `document_idx @@ to_tsquery('${stringTsQuery}')`;
+            var unaccent = searchString.normalize('NFD').replace(/[\u0300-\u036f]/g, "");
+            console.log(unaccent);
+            if (unaccent !== searchString) {
+                console.log('có dấu');
+                whereQuery = `document_idx @@ to_tsquery('${stringTsQuery}')`;
+            }
+            else {
+                whereQuery = `document_idx @@ to_tsquery('${stringTsQuery}') or document_idx @@ to_tsquery(unaccent(coalesce('${stringTsQuery}', '')))`;
+            }
             console.log('whereQuery: ', whereQuery);
             const posts = yield typeorm_1.getConnection()
                 .getRepository(entities_1.Post)
@@ -255,10 +277,12 @@ __decorate([
 ], PostResolvers.prototype, "createPost", null);
 __decorate([
     type_graphql_2.Mutation(() => entities_1.Post, { nullable: true }),
+    type_graphql_2.UseMiddleware(isAuth_1.isAuth),
     __param(0, type_graphql_2.Arg('title', () => String, { nullable: true })),
-    __param(1, type_graphql_2.Arg('id')),
+    __param(1, type_graphql_2.Arg('text', () => String, { nullable: true })),
+    __param(2, type_graphql_2.Arg('id', () => type_graphql_2.Int)),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, Number]),
+    __metadata("design:paramtypes", [String, String, Number]),
     __metadata("design:returntype", Promise)
 ], PostResolvers.prototype, "updatePost", null);
 __decorate([
@@ -270,6 +294,13 @@ __decorate([
     __metadata("design:paramtypes", [Number, Object]),
     __metadata("design:returntype", Promise)
 ], PostResolvers.prototype, "deletePost", null);
+__decorate([
+    type_graphql_2.Query(() => Boolean),
+    __param(0, type_graphql_2.Arg('nameIndex', () => String)),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", Promise)
+], PostResolvers.prototype, "createIndexPostTitle", null);
 __decorate([
     type_graphql_2.Query(() => [entities_1.Post], { nullable: true }),
     __param(0, type_graphql_2.Arg('searchString', () => String)),

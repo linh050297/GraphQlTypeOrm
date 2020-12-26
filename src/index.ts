@@ -15,7 +15,18 @@ import cors from 'cors';
 import { Post, User, Updoot } from './entities';
 import {createConnection} from 'typeorm';
 import path from 'path';
+import client from './utils/elasticSearchConnect';
 
+client.ping({
+  // ping usually has a 3000ms timeout
+  requestTimeout: 3000
+}, function (error) {
+  if (error) {
+    console.trace('elasticsearch cluster is down!');
+  } else {
+    console.log('All is well');
+  }
+});
 
 const main = async () => {
 
