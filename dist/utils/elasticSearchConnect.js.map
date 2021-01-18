@@ -1,1 +1,0 @@
-{"version":3,"file":"elasticSearchConnect.js","sourceRoot":"","sources":["../../src/utils/elasticSearchConnect.ts"],"names":[],"mappings":";;AAAA,iDAAuC;AAEvC,MAAM,MAAM,GAAG,IAAI,sBAAM,CAAC;IACxB,IAAI,EAAE,gBAAgB;IACtB,GAAG,EAAE,OAAO;IACZ,UAAU,EAAE,KAAK;IACjB,QAAQ,EAAE,EAAE;CACb,CAAC,CAAC;AAEH,kBAAe,MAAM,CAAC"}

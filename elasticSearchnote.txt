@@ -131,3 +131,116 @@ PUT edge_ngram_autocomplete/_doc/1
 {
   "text": "nguyễn thanh thảo" 
 }
+
+
+//*** elasticsearch-building-autocomplete-functionality
+PUT movies
+{
+  "settings": {
+    "index": {
+      "analysis": {
+        "filter": {},
+        "analyzer": {
+          "keyword_analyzer": {
+            "filter": [
+              "lowercase",
+              "trim"
+            ],
+            "char_filter": [],
+            "type": "custom",
+            "tokenizer": "keyword"
+          },
+          "edge_ngram_analyzer": {
+            "filter": [
+              "lowercase"
+            ],
+            "tokenizer": "edge_ngram_tokenizer"
+          },
+          "edge_ngram_search_analyzer": {
+            "tokenizer": "lowercase"
+          }
+        },
+        "tokenizer": {
+          "edge_ngram_tokenizer": {
+            "type": "edge_ngram",
+            "min_gram": 2,
+            "max_gram": 5,
+            "token_chars": [
+              "letter"
+            ]
+          }
+        }
+      }
+    }
+  },
+  "mappings": {
+      "properties": {
+        "name": {
+          "type": "text",
+          "fields": {
+            "keywordstring": {
+              "type": "text",
+              "analyzer": "keyword_analyzer"
+            },
+            "edgengram": {
+              "type": "text",
+              "analyzer": "edge_ngram_analyzer",
+              "search_analyzer": "edge_ngram_search_analyzer"
+            },
+            "completion": {
+              "type": "completion"
+            }
+          },
+          "analyzer": "standard"
+        }
+      }
+  }
+}
+
+GET movies/_search
+{
+  "query": {
+    "prefix": {
+      "name.keywordstring": "iro"
+    }
+  }
+}
+
+GET movies/_search
+{
+  "query": {
+    "match": {
+      "name.edgengram": "ir"
+    }
+  }
+}
+
+GET movies/_search
+{
+    "suggest": {
+        "movie-suggest" : {
+            "prefix" : "america",
+            "completion" : {
+                "field" : "name.completion"
+            }
+        }
+    }
+}
+
+GET movies/_search?pretty
+{
+  "suggest": {
+    "movie-suggest-fuzzy": {
+      "prefix": "bé diễm đang",
+      "completion": {
+        "field": "name.completion",
+        "fuzzy": {
+          "fuzziness": 4
+        }
+      }
+    }
+  }
+}
+
+//prefix query only matches at the beginning of the text and not in the middle.
+

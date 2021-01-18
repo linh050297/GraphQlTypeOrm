@@ -12,7 +12,7 @@ import Redis from 'ioredis';
 import session from 'express-session';
 import connectRedis from 'connect-redis';
 import cors from 'cors';
-import { Post, User, Updoot } from './entities';
+import { Post, User, Updoot, ElasticSync } from './entities';
 import {createConnection} from 'typeorm';
 import path from 'path';
 import client from './utils/elasticSearchConnect';
@@ -33,7 +33,7 @@ const main = async () => {
   const conn = await createConnection({
     type: "postgres",
     database: "typeormdb",
-    entities: [Post, User, Updoot],
+    entities: [Post, User, Updoot, ElasticSync ],
     username: "postgres",
     password: "linhhz77",
     logging: true,

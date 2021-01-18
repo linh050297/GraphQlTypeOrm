@@ -17,6 +17,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@types/array.prototype.flatmap": "^1.2.2",
     "@types/connect-redis": "^0.0.14",
     "@types/elasticsearch": "^5.0.37",
     "@types/express-session": "^1.17.0",
@@ -25,6 +26,7 @@
     "argon2": "^0.27.0",
     "connect-redis": "^5.0.0",
     "cors": "^2.8.5",
+    "elastic-builder": "^2.11.0",
     "elasticsearch": "^16.7.2",
     "express": "^4.17.1",
     "express-session": "^1.17.1",
