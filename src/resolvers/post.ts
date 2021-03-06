@@ -31,7 +31,10 @@ import {
 } from "../elasticSearchService/indexService";
 
 import { ResyncPostEL } from "../elasticSearchService/resyncPost";
-import { SearchPostEdgengram, SearchPostElAutocomplete } from "../elasticSearchService/searchPost";
+import {
+  SearchPostEdgengram,
+  SearchPostElAutocomplete,
+} from "../elasticSearchService/searchPost";
 
 @ObjectType()
 class PaginatedPosts {
@@ -365,10 +368,8 @@ export class PostResolvers {
     @Arg("searchString", () => String) searchString: string,
     @Arg("indexName", () => String) indexName: string
   ): Promise<Post[] | null> {
-
     // SearchPost(searchString, 'postindex');
     return SearchPostEdgengram(searchString, indexName);
-
   }
 
   @Query(() => [Post], { nullable: true })
@@ -376,13 +377,11 @@ export class PostResolvers {
     @Arg("searchString", () => String) searchString: string,
     @Arg("indexName", () => String) indexName: string
   ): Promise<Post[] | null> {
-
     // SearchPost(searchString, 'postindex');
-    if(searchString){
+    if (searchString) {
       return SearchPostElAutocomplete(searchString, indexName);
-    };
-    
-    return null;
+    }
 
+    return null;
   }
 }

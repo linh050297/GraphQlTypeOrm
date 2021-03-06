@@ -1,44 +1,45 @@
-
 import "reflect-metadata";
-import { __prod__, COOKIE_NAME } from './constants';
+import { __prod__, COOKIE_NAME } from "./constants";
 import helmet from "helmet";
 // import { MikroORM } from "@mikro-orm/core";
 // import microConfig from './mikro-orm.config';
-import express from 'express';
-import { ApolloServer } from 'apollo-server-express';
-import { buildSchema } from 'type-graphql';
+import express from "express";
+import { ApolloServer } from "apollo-server-express";
+import { buildSchema } from "type-graphql";
 import { PostResolvers, HelloResolvers, UserResolvers } from "./resolvers";
-import Redis from 'ioredis';
-import session from 'express-session';
-import connectRedis from 'connect-redis';
-import cors from 'cors';
-import { Post, User, Updoot, ElasticSync } from './entities';
-import {createConnection} from 'typeorm';
-import path from 'path';
-import client from './utils/elasticSearchConnect';
+import Redis from "ioredis";
+import session from "express-session";
+import connectRedis from "connect-redis";
+import cors from "cors";
+import { Post, User, Updoot, ElasticSync } from "./entities";
+import { createConnection } from "typeorm";
+import path from "path";
+import client from "./utils/elasticSearchConnect";
 
-client.ping({
-  // ping usually has a 3000ms timeout
-  requestTimeout: 3000
-}, function (error) {
-  if (error) {
-    console.trace('elasticsearch cluster is down!');
-  } else {
-    console.log('All is well');
+client.ping(
+  {
+    // ping usually has a 3000ms timeout
+    requestTimeout: 3000,
+  },
+  function (error) {
+    if (error) {
+      console.trace("elasticsearch cluster is down!");
+    } else {
+      console.log("All is well");
+    }
   }
-});
+);
 
 const main = async () => {
-
   const conn = await createConnection({
     type: "postgres",
     database: "typeormdb",
-    entities: [Post, User, Updoot, ElasticSync ],
+    entities: [Post, User, Updoot, ElasticSync],
     username: "postgres",
     password: "linhhz77",
     logging: true,
-    migrations:[path.join(__dirname, "./migrations/*")] ,
-    synchronize: true //just use in development
+    migrations: [path.join(__dirname, "./migrations/*")],
+    synchronize: true, //just use in development
   });
 
   conn.runMigrations();
@@ -55,16 +56,16 @@ const main = async () => {
   const RedisStore = connectRedis(session);
   const redis = new Redis();
 
+  app.use(
+    cors({
+      origin: "http://localhost:3000",
+      credentials: true,
+    })
+  );
 
-  app.use(cors({
-    origin: 'http://localhost:3000',
-    credentials: true
-  }))
-  
-
-  redis.on('ready', () => {
-    console.log('Redis is ready to work.....');
-  })
+  redis.on("ready", () => {
+    console.log("Redis is ready to work.....");
+  });
 
   //#1: tạo cookie lưu vào redis dạng key-value
   //#2: express-sesstion set cookie cho browser
@@ -77,35 +78,35 @@ const main = async () => {
       name: COOKIE_NAME,
       store: new RedisStore({
         client: redis,
-        disableTouch: true //option disable ttl(time to live of session)
+        disableTouch: true, //option disable ttl(time to live of session)
       }),
       cookie: {
         maxAge: 1000 * 60 * 60 * 24,
         httpOnly: true,
-        sameSite: 'lax',
-        secure: __prod__//only works in https
+        sameSite: "lax",
+        secure: __prod__, //only works in https
       },
-      secret: 'airoicungkhac',
+      secret: "airoicungkhac",
       resave: false,
-      saveUninitialized: false
+      saveUninitialized: false,
     })
-  )
+  );
 
   const apolloServer = new ApolloServer({
     schema: await buildSchema({
       resolvers: [HelloResolvers, PostResolvers, UserResolvers],
-      validate: false
+      validate: false,
     }),
-    context: ({ req, res }) => ({ req, res, redis })
-  })
+    context: ({ req, res }) => ({ req, res, redis }),
+  });
 
   apolloServer.applyMiddleware({ app, cors: false });
 
   app.listen(4000, () => {
-    console.log('App is listening on  localhost:4000');
-  })
-}
+    console.log("App is listening on  localhost:4000");
+  });
+};
 
 main().catch((error) => {
   console.log(error);
-});;
+});
